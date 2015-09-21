@@ -166,4 +166,3 @@ def get_error_report(from_date=None, to_date=None, limit=10):
 			limit=limit, url=get_url(), errors="<hr>".join(errors))
 	else:
 		return 0, "<p>Scheduler didn't encounter any problems.</p>"
-
