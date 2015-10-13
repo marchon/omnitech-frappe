@@ -22,8 +22,6 @@ import frappe.utils.response
 import frappe.website.render
 from frappe.utils import get_site_name, get_site_path
 from frappe.middlewares import StaticDataMiddleware
-from api_handler.api import handle
-
 
 local_manager = LocalManager([frappe.local])
 
@@ -52,7 +50,6 @@ def application(request):
 	frappe.local.request = request
 	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With")=="XMLHttpRequest"
 	response = None
-	print frappe.request.path
 
 	try:
 		rollback = True
@@ -73,9 +70,6 @@ def application(request):
 
 		elif frappe.request.path.startswith('/backups'):
 			response = frappe.utils.response.download_backup(request.path)
-
-		elif frappe.request.path.startswith("/omni_api/"):
-			response = handle()
 
 		elif frappe.local.request.method in ('GET', 'HEAD'):
 			response = frappe.website.render.render(request.path)
