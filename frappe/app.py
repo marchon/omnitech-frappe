@@ -24,7 +24,6 @@ from frappe.utils import get_site_name, get_site_path
 from frappe.middlewares import StaticDataMiddleware
 from api_handler.api import handle
 
-
 local_manager = LocalManager([frappe.local])
 
 _site = None
