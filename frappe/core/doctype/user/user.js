@@ -1,3 +1,5 @@
+{% include 'omnitechapp/js/custom_user.js' %};
+
 cur_frm.cscript.onload = function(doc, dt, dn) {
 	if(has_common(user_roles, ["Administrator", "System Manager"])) {
 		if(!cur_frm.roles_editor) {
