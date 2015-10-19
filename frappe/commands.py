@@ -857,35 +857,12 @@ def drop_site(site, root_login='root', root_password=None):
 		os.mkdir(archived_sites_dir)
 	move(archived_sites_dir, site)
 
-<<<<<<< HEAD
-@click.command('update-user-package')
-@click.argument('pkg_json')
-@pass_context
-def update_user_package(context, pkg_json):
-	"Update the Package Details single doctype"
-	for site in context.sites:
-		method = "omnitechapp.omnitechapp.doctype.package_detail.package_detail.update_user_package"
-		try:
-			frappe.init(site=site)
-			frappe.connect()
-			print frappe.local.site
-			ret = frappe.get_attr(method)(pkg_json)
-
-			# user, password fields are None
-			# if frappe.db:
-			# 	frappe.db.commit()
-		finally:
-			frappe.destroy()
-		if ret:
-			print ret
-=======
 @click.command('version')
 @pass_context
 def get_version(context):
 	frappe.init(site=context.sites[0])
 	for m in sorted(frappe.local.app_modules.keys()):
 		print "{0} {1}".format(m, frappe.get_module(m).__version__)
->>>>>>> 3e4707d0aa6aa6c9cccf05b573a3cdafa68f72f1
 
 # commands = [
 # 	new_site,
