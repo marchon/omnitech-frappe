@@ -15,13 +15,15 @@ from frappe.utils.jinja import render_include
 from jinja2 import TemplateError
 import itertools, operator
 
-def guess_language(lang_codes):
+def guess_language(lang_list=None):
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request"""
+	lang_codes = frappe.request.accept_languages.values()
 	if not lang_codes:
 		return frappe.local.lang
 
 	guess = None
-	lang_list = get_all_languages() or []
+	if not lang_list:
+		lang_list = get_all_languages() or []
 
 	for l in lang_codes:
 		code = l.strip()
@@ -529,3 +531,11 @@ def deduplicate_messages(messages):
 
 def get_bench_dir():
 	return os.path.join(frappe.__file__, '..', '..', '..', '..')
+
+def rename_language(old_name, new_name):
+	language_in_system_settings = frappe.db.get_single_value("System Settings", "language")
+	if language_in_system_settings == old_name:
+		frappe.db.set_value("System Settings", "System Settings", "language", new_name)
+
+	frappe.db.sql("""update `tabUser` set language=%(new_name)s where language=%(old_name)s""",
+		{ "old_name": old_name, "new_name": new_name })

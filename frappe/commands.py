@@ -383,15 +383,28 @@ def reset_perms(context):
 
 @click.command('execute')
 @click.argument('method')
+@click.option('--args')
+@click.option('--kwargs')
 @pass_context
-def execute(context, method):
+def execute(context, method, args=None, kwargs=None):
 	"execute a function"
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
 			print frappe.local.site
-			ret = frappe.get_attr(method)()
+
+			if args:
+				args = eval(args)
+			else:
+				args = ()
+
+			if kwargs:
+				kwargs = eval(args)
+			else:
+				kwargs = {}
+
+			ret = frappe.get_attr(method)(*args, **kwargs)
 
 			if frappe.db:
 				frappe.db.commit()
@@ -549,6 +562,27 @@ def import_csv(context, path, only_insert=False, submit_after_import=False, igno
 		frappe.db.commit()
 	except Exception:
 		print frappe.get_traceback()
+
+	frappe.destroy()
+
+@click.command('bulk-rename')
+@click.argument('doctype')
+@click.argument('path')
+@pass_context
+def _bulk_rename(context, doctype, path):
+	"Import CSV using data import tool"
+	from frappe.model.rename_doc import bulk_rename
+	from frappe.utils.csvutils import read_csv_content
+
+	site = get_single_site(context)
+
+	with open(path, 'r') as csvfile:
+		rows = read_csv_content(csvfile.read())
+
+	frappe.init(site=site)
+	frappe.connect()
+
+	bulk_rename(doctype, rows, via_console = True)
 
 	frappe.destroy()
 
@@ -862,7 +896,9 @@ def drop_site(site, root_login='root', root_password=None):
 def get_version(context):
 	frappe.init(site=context.sites[0])
 	for m in sorted(frappe.local.app_modules.keys()):
-		print "{0} {1}".format(m, frappe.get_module(m).__version__)
+		module = frappe.get_module(m)
+		if hasattr(module, "__version__"):
+			print "{0} {1}".format(m, module.__version__)
 
 # commands = [
 # 	new_site,
@@ -903,6 +939,7 @@ commands = [
 	export_fixtures,
 	import_doc,
 	import_csv,
+	_bulk_rename,
 	build_message_files,
 	get_untranslated,
 	update_translations,
