@@ -33,6 +33,7 @@ $.extend(frappe.model, {
 		}
 
 		frappe.model.add_to_locals(doc);
+
 		return doc;
 	},
 
@@ -218,7 +219,7 @@ $.extend(frappe.model, {
 		}
 
 		return frappe.call({
-			type: "GET",
+			type: "POST",
 			method: opts.method,
 			args: {
 				"source_name": opts.source_name

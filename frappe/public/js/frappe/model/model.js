@@ -83,7 +83,7 @@ $.extend(frappe.model, {
 
 	with_doctype: function(doctype, callback) {
 		if(locals.DocType[doctype]) {
-			callback();
+			callback && callback();
 		} else {
 			var cached_timestamp = null;
 			if(localStorage["_doctype:" + doctype]) {
@@ -112,7 +112,7 @@ $.extend(frappe.model, {
 					}
 					frappe.model.init_doctype(doctype);
 					frappe.defaults.set_user_permissions(r.user_permissions);
-					callback(r);
+					callback && callback(r);
 				}
 			});
 		}
@@ -172,7 +172,7 @@ $.extend(frappe.model, {
 			}
 		}
 		if (cur_frm.doctype === reference_doctype && cur_frm.docname === reference_name) {
-			cur_frm.comments.refresh();
+			cur_frm.comments && cur_frm.comments.refresh();
 		}
 	},
 
