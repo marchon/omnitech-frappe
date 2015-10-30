@@ -16,6 +16,13 @@ from frappe.utils.nestedset import NestedSet
 from frappe.utils import strip
 import json
 import urllib
+from PIL import Image, ImageOps
+import os
+import requests
+import requests.exceptions
+import StringIO
+import mimetypes, imghdr
+from frappe.utils import get_files_path
 
 class FolderNotEmpty(frappe.ValidationError): pass
 
@@ -60,6 +67,7 @@ class File(NestedSet):
 		if self.is_new():
 			self.validate_duplicate_entry()
 		self.validate_folder()
+		self.validate_file()
 		self.set_folder_size()
 
 	def set_folder_size(self):
@@ -95,6 +103,14 @@ class File(NestedSet):
 			not self.flags.ignore_folder_validate:
 			frappe.throw(_("Folder is mandatory"))
 
+	def validate_file(self):
+		if (self.file_url or "").startswith("/files/"):
+			if not self.file_name:
+				self.file_name = self.file_url.split("/files/")[-1]
+
+			if not os.path.exists(get_files_path(self.file_name)):
+				frappe.throw(_("File {0} does not exist").format(self.file_url), IOError)
+
 	def validate_duplicate_entry(self):
 		if not self.flags.ignore_duplicate_entry_error and not self.is_folder:
 			# check duplicate name
@@ -119,9 +135,6 @@ class File(NestedSet):
 		self.delete_file()
 
 	def make_thumbnail(self):
-		from PIL import Image, ImageOps
-		import os
-
 		if self.file_url:
 			if self.file_url.startswith("/files"):
 				try:
@@ -132,12 +145,24 @@ class File(NestedSet):
 
 			else:
 				# downlaod
-				import requests, StringIO
 				file_url = frappe.utils.get_url(self.file_url)
 				r = requests.get(file_url, stream=True)
-				r.raise_for_status()
+				try:
+					r.raise_for_status()
+				except requests.exceptions.HTTPError, e:
+					if "404" in e.args[0]:
+						frappe.msgprint(_("File '{0}' not found").format(self.file_url))
+
+					raise
+
 				image = Image.open(StringIO.StringIO(r.content))
 				filename, extn = self.file_url.rsplit("/", 1)[1].rsplit(".", 1)
+
+				mimetype = mimetypes.guess_type(filename + "." + extn)[0]
+				if mimetype is None or not mimetype.startswith("image/"):
+					# detect file extension by reading image header properties
+					extn = imghdr.what(filename + "." + extn, h=r.content)
+
 				filename = "/files/" + strip(urllib.unquote(filename))
 
 			thumbnail = ImageOps.fit(
@@ -192,6 +217,7 @@ class File(NestedSet):
 			delete_file_data_content(self, only_thumbnail=True)
 
 	def on_rollback(self):
+		self.flags.on_rollback = True
 		self.on_trash()
 
 def on_doctype_update():
