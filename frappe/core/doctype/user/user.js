@@ -133,8 +133,10 @@ frappe.RoleEditor = Class.extend({
 		this.wrapper = wrapper;
 		$(wrapper).html('<div class="help">' + __("Loading") + '...</div>')
 		return frappe.call({
-			method: 'frappe.core.doctype.user.user.get_all_roles',
+			// method: 'frappe.core.doctype.user.user.get_all_roles',
+			method: 'omnitechapp.omnitechapp.doctype.package_detail.package_detail.get_allowed_roles',
 			callback: function(r) {
+				console.log(["roles_to_hide", r.message])
 				me.roles = r.message;
 				me.show_roles();
 
