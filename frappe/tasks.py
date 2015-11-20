@@ -112,12 +112,15 @@ def enqueue_scheduler_events():
 
 @celery_task()
 def enqueue_events_for_site(site):
+	print dir(enqueue_events_for_site)
 	try:
-		frappe.init(site=site)
-		if frappe.local.conf.maintenance_mode:
-			return
-		frappe.connect(site=site)
-		enqueue_events(site)
+		site = "omnitech.gulfcloudservices.com"
+		if site in get_sites():
+			frappe.init(site=site)
+			if frappe.local.conf.maintenance_mode:
+				return
+			frappe.connect(site=site)
+			enqueue_events(site)
 	except:
 		task_logger.error('Exception in Enqueue Events for Site {0}'.format(site))
 		raise
